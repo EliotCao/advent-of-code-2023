@@ -70,7 +70,38 @@ pub fn part_one(input: &str) -> Option<usize> {
         .min()
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<usize> {
+    let (seeds, maps) = parse(input)?;
+
+    let ranges: Vec<(usize, usize)> = seeds
+        .chunks(2)
+        .map(|vals| {
+            let x = vals[0] - 1;
+            let y = x + vals[1];
+            (x, y)
+        })
+        .collect_vec();
+
+    for i in 0..usize::MAX {
+        let start_value = maps.iter().rev().fold(i, |acc, map| {
+            let range = map.iter().find(|range| {
+                acc >= range.destination_start && acc < (range.destination_start + range.length)
+            });
+
+            match range {
+                Some(range) => acc + range.source_start - range.destination_start,
+                None => acc,
+            }
+        });
+
+        if ranges
+            .iter()
+            .any(|r| start_value >= r.0 && start_value <= r.1)
+        {
+            return Some(i);
+        }
+    }
+
     None
 }
 
@@ -87,6 +118,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(46));
     }
 }
