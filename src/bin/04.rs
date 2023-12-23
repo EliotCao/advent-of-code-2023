@@ -32,7 +32,17 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let cards: Vec<Card> = input.lines().filter_map(parse_card).collect();
+    let mut counts = vec![1; cards.len()];
+
+    cards.iter().enumerate().for_each(|(i, card)| {
+        let hits = count_hits(card);
+        for j in (i + 1)..=(i + hits) {
+            counts[j] += counts[i];
+        }
+    });
+
+    Some(counts.iter().sum())
 }
 
 #[cfg(test)]
@@ -48,6 +58,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(30));
     }
 }
