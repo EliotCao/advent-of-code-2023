@@ -49,8 +49,48 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(steps)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+// this works because:
+// - no 'A' is hit after step 0.
+// - one 'A' always hits the same 'Z'.
+// - the 'A'->'Z' path is traversed once, then never again.
+// - all 'Z'->'Z' cycles have the same length for the same node.
+// - all 'A'->'Z' cycles have the same length as the following 'Z'..'Z' cycle.
+pub fn part_two(input: &str) -> Option<usize> {
+    let (instructions, graph) = parse(input)?;
+
+    let mut steps = 0;
+
+    let mut current_nodes: Vec<&str> = graph
+        .keys()
+        .filter(|key| key.ends_with('A'))
+        .copied()
+        .collect();
+
+    let mut cycle_lengths = vec![0; current_nodes.len()];
+
+    while cycle_lengths.iter().any(|x| *x == 0) {
+        let instruction = instructions[steps % instructions.len()];
+
+        for (i, current) in current_nodes.iter_mut().enumerate() {
+            let current_node = graph.get(*current).unwrap();
+
+            let next = match instruction {
+                'L' => current_node.left,
+                'R' => current_node.right,
+                _ => unreachable!(),
+            };
+
+            if next.ends_with('Z') {
+                cycle_lengths[i] = steps + 1;
+            }
+
+            *current = next;
+        }
+
+        steps += 1;
+    }
+
+    Some(least_common_multiple(&cycle_lengths))
 }
 
 #[cfg(test)]
@@ -75,7 +115,9 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 3,
+        ));
+        assert_eq!(result, Some(6));
     }
 }
