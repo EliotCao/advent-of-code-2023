@@ -32,7 +32,19 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let mut lines = input.lines().filter_map(|l| {
+        l.split_once(':').and_then(|l| {
+            String::from_iter(l.1.chars().filter(|x| !x.is_whitespace()))
+                .parse()
+                .ok()
+        })
+    });
+
+    lines.next().and_then(|time| {
+        lines
+            .next()
+            .map(|highscore| simulate(&[time], &[highscore]) as u32)
+    })
 }
 
 #[cfg(test)]
@@ -48,6 +60,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(71503));
     }
 }
