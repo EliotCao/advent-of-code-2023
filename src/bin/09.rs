@@ -38,8 +38,8 @@ pub fn part_one(input: &str) -> Option<i32> {
     Some(solve(input, false))
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<i32> {
+    Some(solve(input, true))
 }
 
 #[cfg(test)]
@@ -55,6 +55,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(2));
     }
 }
