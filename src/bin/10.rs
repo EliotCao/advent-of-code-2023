@@ -109,8 +109,34 @@ pub fn part_one(input: &str) -> Option<usize> {
     find_loop(&mut matrix).map(|pipe| pipe.len() / 2)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let mut matrix = Matrix::from(input);
+    let pipe: HashSet<Cell> = find_loop(&mut matrix).map(HashSet::from_iter)?;
+
+    Some(
+        matrix
+            .items()
+            .filter(|cell| {
+                if pipe.contains(cell) {
+                    return false;
+                }
+
+                let row = cell.point.row;
+                let mut crosses = 0;
+
+                (0..cell.point.col).try_for_each(|col| {
+                    let nb = matrix.get_cell(row, col)?;
+                    // could check `|LJ` as well
+                    if "|F7".contains(nb.val) && pipe.contains(&nb) {
+                        crosses += 1;
+                    }
+                    Some(())
+                });
+
+                crosses % 2 != 0
+            })
+            .count(),
+    )
 }
 
 #[cfg(test)]
@@ -135,7 +161,33 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 3,
+        ));
+        assert_eq!(result, Some(4));
+    }
+
+    #[test]
+    fn test_part_two_two() {
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 4,
+        ));
+        assert_eq!(result, Some(4));
+    }
+
+    #[test]
+    fn test_part_two_three() {
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 5,
+        ));
+        assert_eq!(result, Some(8));
+    }
+
+    #[test]
+    fn test_part_two_four() {
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 6,
+        ));
+        assert_eq!(result, Some(10));
     }
 }
