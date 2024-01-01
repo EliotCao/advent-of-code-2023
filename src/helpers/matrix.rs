@@ -1,5 +1,8 @@
 use itertools::Itertools;
-use std::hash::{Hash, Hasher};
+use std::{
+    fmt::Display,
+    hash::{Hash, Hasher},
+};
 
 /* -------------------------------------------------------------------------- */
 
@@ -43,20 +46,26 @@ pub struct Point {
 }
 
 #[derive(Debug, Clone, Copy, Eq)]
-pub struct Cell<T: Copy = char> {
+pub struct Cell<T: Copy + Display = char> {
     pub val: T,
     pub point: Point,
 }
 
-impl<T: Copy> PartialEq for Cell<T> {
+impl<T: Copy + Display> PartialEq for Cell<T> {
     fn eq(&self, other: &Self) -> bool {
         self.point == other.point
     }
 }
 
-impl<T: Copy> Hash for Cell<T> {
+impl<T: Copy + Display> Hash for Cell<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.point.hash(state);
+    }
+}
+
+impl<T: Copy + Display> Display for Cell<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[{}:{}] {}", self.point.row, self.point.col, self.val)
     }
 }
 
@@ -90,7 +99,28 @@ impl From<&str> for Matrix<char> {
     }
 }
 
-impl<T: Copy> Matrix<T> {
+impl From<&str> for Matrix<u32> {
+    fn from(s: &str) -> Self {
+        let cells: Vec<Vec<u32>> = s
+            .lines()
+            .filter_map(|l| {
+                if !l.is_empty() {
+                    Some(l.chars().map(|x| x.to_digit(10).unwrap()).collect())
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        Self {
+            cols: cells[0].len(),
+            rows: cells.len(),
+            cells,
+        }
+    }
+}
+
+impl<T: Copy + Display> Matrix<T> {
     pub fn get(&self, row: usize, col: usize) -> Option<T> {
         self.cells.get(row).and_then(|l| l.get(col).copied())
     }
@@ -197,14 +227,14 @@ impl<T: Copy> Matrix<T> {
         }
     }
 
-    pub fn neighbours(
-        &self,
-        start: Cell<T>,
-        directions: Vec<Direction>,
+    pub fn neighbours<'a, 'b: 'a>(
+        &'a self,
+        start: &'b Cell<T>,
+        directions: &'b [Direction],
     ) -> impl Iterator<Item = (Direction, Option<Cell<T>>)> + '_ {
-        directions.into_iter().map(move |dir| {
-            let neighbour = self.neighbour(&start, &dir);
-            (dir, neighbour)
+        directions.iter().map(move |dir| {
+            let neighbour = self.neighbour(start, dir);
+            (*dir, neighbour)
         })
     }
 
