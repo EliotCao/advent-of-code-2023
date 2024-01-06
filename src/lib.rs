@@ -1,5 +1,5 @@
-mod day;
-pub mod helpers;
 pub mod template;
 
-pub use day::*;
+// Use this file to add helper functions and additional modules.
+
+pub mod helpers;
